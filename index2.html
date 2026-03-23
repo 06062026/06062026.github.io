@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Program – Petra & Michal 💍</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💍</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Tangerine:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #1a1a10;
+            font-family: 'Tangerine', cursive;
+        }
+
+        /* Center and maintain the 3:2 aspect ratio of mapka.png (1536×1024) */
+        .map-wrapper {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .map-container {
+            position: relative;
+            width: min(100vw, 150vh);
+            height: min(100vh, 66.6667vw);
+            flex-shrink: 0;
+        }
+
+        .map-bg {
+            width: 100%;
+            height: 100%;
+            display: block;
+            user-select: none;
+            -webkit-user-drag: none;
+            pointer-events: none;
+        }
+
+        /* SVG overlay for dots and lines */
+        .svg-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: visible;
+        }
+
+        /* Invisible hotspot areas */
+        .hotspot {
+            position: absolute;
+            cursor: crosshair;
+            z-index: 10;
+            /* Uncomment to debug bounding boxes: */
+            /* background: rgba(255, 0, 0, 0.15); border: 1px dashed red; */
+        }
+
+        /* Pulse ring on each hotspot to hint interactivity */
+        .hotspot::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 2px solid rgba(112, 130, 56, 0.6);
+            animation: pulse 2.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%   { transform: translate(-50%, -50%) scale(0.8); opacity: 0.7; }
+            50%  { transform: translate(-50%, -50%) scale(1.6); opacity: 0.2; }
+            100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.7; }
+        }
+
+        /* Schedule popup panels in the right half */
+        .schedule-popup {
+            position: absolute;
+            left: 52%;
+            background: rgba(248, 244, 228, 0.94);
+            border: 1.5px solid #708238;
+            border-radius: 10px;
+            padding: 14px 18px;
+            pointer-events: none;
+            opacity: 0;
+            transform: translateY(-50%) translateX(-6px);
+            transition: opacity 0.28s ease, transform 0.28s ease;
+            min-width: 220px;
+            max-width: 40%;
+            box-shadow: 3px 3px 16px rgba(0, 0, 0, 0.35);
+            z-index: 20;
+        }
+
+        .schedule-popup.visible {
+            opacity: 1;
+            transform: translateY(-50%) translateX(0);
+        }
+
+        .schedule-popup h3 {
+            color: #4a6020;
+            font-size: 2em;
+            font-weight: 700;
+            margin-bottom: 6px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #a0b060;
+            letter-spacing: 0.04em;
+        }
+
+        .schedule-popup p {
+            color: #3a4a18;
+            font-size: 1.55em;
+            line-height: 1.45;
+            letter-spacing: 0.02em;
+        }
+
+        /* SVG visual elements – hidden until hover */
+        .svg-dot,
+        .svg-line {
+            opacity: 0;
+            transition: opacity 0.28s ease;
+        }
+
+        .svg-dot.visible,
+        .svg-line.visible {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+
+<div class="map-wrapper">
+    <div class="map-container" id="mapContainer">
+
+        <!-- The map image -->
+        <img src="mapka.png" class="map-bg" alt="Mapa areálu" draggable="false">
+
+        <!--
+            SVG overlay – viewBox matches the native image resolution (1536×1024)
+            preserveAspectRatio="none" so SVG scales exactly with the container.
+
+            Area bounding boxes (pixels in native image coords):
+              Area 1: x=40–250,  y=80–160   → centre (145, 120)
+              Area 2: x=40–250,  y=220–300  → centre (145, 260)
+              Area 3: x=40–250,  y=370–450  → centre (145, 410)
+              Area 4: x=40–250,  y=520–620  → centre (145, 570)
+              Area 5: x=40–250,  y=680–780  → centre (145, 730)
+
+            Right-half anchor for lines: x=800 (≈52% of 1536)
+        -->
+        <svg class="svg-overlay"
+             viewBox="0 0 1536 1024"
+             preserveAspectRatio="none"
+             id="svgOverlay"
+             aria-hidden="true">
+
+            <!-- Area 1 -->
+            <line id="line1" class="svg-line"
+                  x1="145" y1="120" x2="798" y2="120"
+                  stroke="#708238" stroke-width="2.5"
+                  stroke-dasharray="10,5"/>
+            <circle id="dot1" class="svg-dot"
+                    cx="145" cy="120" r="9"
+                    fill="#708238" stroke="#fffff0" stroke-width="2.5"/>
+
+            <!-- Area 2 -->
+            <line id="line2" class="svg-line"
+                  x1="145" y1="260" x2="798" y2="260"
+                  stroke="#708238" stroke-width="2.5"
+                  stroke-dasharray="10,5"/>
+            <circle id="dot2" class="svg-dot"
+                    cx="145" cy="260" r="9"
+                    fill="#708238" stroke="#fffff0" stroke-width="2.5"/>
+
+            <!-- Area 3 -->
+            <line id="line3" class="svg-line"
+                  x1="145" y1="410" x2="798" y2="410"
+                  stroke="#708238" stroke-width="2.5"
+                  stroke-dasharray="10,5"/>
+            <circle id="dot3" class="svg-dot"
+                    cx="145" cy="410" r="9"
+                    fill="#708238" stroke="#fffff0" stroke-width="2.5"/>
+
+            <!-- Area 4 -->
+            <line id="line4" class="svg-line"
+                  x1="145" y1="570" x2="798" y2="570"
+                  stroke="#708238" stroke-width="2.5"
+                  stroke-dasharray="10,5"/>
+            <circle id="dot4" class="svg-dot"
+                    cx="145" cy="570" r="9"
+                    fill="#708238" stroke="#fffff0" stroke-width="2.5"/>
+
+            <!-- Area 5 -->
+            <line id="line5" class="svg-line"
+                  x1="145" y1="730" x2="798" y2="730"
+                  stroke="#708238" stroke-width="2.5"
+                  stroke-dasharray="10,5"/>
+            <circle id="dot5" class="svg-dot"
+                    cx="145" cy="730" r="9"
+                    fill="#708238" stroke="#fffff0" stroke-width="2.5"/>
+        </svg>
+
+        <!--
+            Hotspot divs – positioned as % of container, matching native px bbox above.
+            left  = x_min / 1536,  width  = (x_max – x_min) / 1536
+            top   = y_min / 1024,  height = (y_max – y_min) / 1024
+        -->
+
+        <!-- Area 1: x=40–250, y=80–160 -->
+        <div class="hotspot"
+             style="left:2.6%; top:7.8%; width:13.6%; height:7.8%"
+             data-dot="dot1" data-line="line1" data-popup="popup1">
+        </div>
+
+        <!-- Area 2: x=40–250, y=220–300 -->
+        <div class="hotspot"
+             style="left:2.6%; top:21.5%; width:13.6%; height:7.8%"
+             data-dot="dot2" data-line="line2" data-popup="popup2">
+        </div>
+
+        <!-- Area 3: x=40–250, y=370–450 -->
+        <div class="hotspot"
+             style="left:2.6%; top:36.1%; width:13.6%; height:7.8%"
+             data-dot="dot3" data-line="line3" data-popup="popup3">
+        </div>
+
+        <!-- Area 4: x=40–250, y=520–620 -->
+        <div class="hotspot"
+             style="left:2.6%; top:50.8%; width:13.6%; height:9.8%"
+             data-dot="dot4" data-line="line4" data-popup="popup4">
+        </div>
+
+        <!-- Area 5: x=40–250, y=680–780 -->
+        <div class="hotspot"
+             style="left:2.6%; top:66.4%; width:13.6%; height:9.8%"
+             data-dot="dot5" data-line="line5" data-popup="popup5">
+        </div>
+
+        <!-- Schedule popup panels -->
+
+        <!-- Popup 1 – centred at y = 120/1024 ≈ 11.7% -->
+        <div class="schedule-popup" id="popup1" style="top:11.7%">
+            <h3>Obřadní louka</h3>
+            <p>13:30 Příchod &amp; usazení hostů</p>
+            <p>14:00 Obřad</p>
+            <p>14:30 Projev svědků</p>
+            <p>14:50 Výměna prstenů</p>
+            <p>15:00 Gratulace &amp; přípitky</p>
+            <p>15:30 Fotografování</p>
+        </div>
+
+        <!-- Popup 2 – centred at y = 260/1024 ≈ 25.4% -->
+        <div class="schedule-popup" id="popup2" style="top:25.4%">
+            <h3>Letní bar</h3>
+            <p>15:30 Otevření baru</p>
+            <p>16:00 Aperitivy &amp; koktejly</p>
+            <p>17:00 Finger food</p>
+            <p>20:00 Noční menu</p>
+            <p>22:00 Degustace vín</p>
+            <p>00:00 Závěrečné kolo</p>
+        </div>
+
+        <!-- Popup 3 – centred at y = 410/1024 ≈ 40.0% -->
+        <div class="schedule-popup" id="popup3" style="top:40.0%">
+            <h3>Slavnostní stůl</h3>
+            <p>17:00 Usazení hostů</p>
+            <p>17:30 Polévka</p>
+            <p>18:00 Hlavní chod</p>
+            <p>19:30 raut &amp; saláty</p>
+            <p>20:30 Dezerty</p>
+            <p>21:00 Krájení dortu</p>
+        </div>
+
+        <!-- Popup 4 – centred at y = 570/1024 ≈ 55.7% -->
+        <div class="schedule-popup" id="popup4" style="top:55.7%">
+            <h3>Taneční parket</h3>
+            <p>19:00 První tanec novomanželů</p>
+            <p>19:30 Tanec s rodiči</p>
+            <p>20:00 Živá hudba</p>
+            <p>22:00 DJ set</p>
+            <p>00:00 Půlnoční překvapení</p>
+            <p>01:00 Závěrečné tance</p>
+        </div>
+
+        <!-- Popup 5 – centred at y = 730/1024 ≈ 71.3% -->
+        <div class="schedule-popup" id="popup5" style="top:71.3%">
+            <h3>Zahradní terasa</h3>
+            <p>15:00 Zahradní hry</p>
+            <p>16:00 Dětský koutek</p>
+            <p>17:00 Procházka po parku</p>
+            <p>19:30 Západ slunce</p>
+            <p>21:00 Ohňostroj</p>
+            <p>22:00 Táborák</p>
+        </div>
+
+    </div><!-- .map-container -->
+</div><!-- .map-wrapper -->
+
+<script>
+    document.querySelectorAll('.hotspot').forEach(function (hs) {
+        var dot    = document.getElementById(hs.dataset.dot);
+        var line   = document.getElementById(hs.dataset.line);
+        var popup  = document.getElementById(hs.dataset.popup);
+
+        hs.addEventListener('mouseenter', function () {
+            if (dot)   dot.classList.add('visible');
+            if (line)  line.classList.add('visible');
+            if (popup) popup.classList.add('visible');
+        });
+
+        hs.addEventListener('mouseleave', function () {
+            if (dot)   dot.classList.remove('visible');
+            if (line)  line.classList.remove('visible');
+            if (popup) popup.classList.remove('visible');
+        });
+    });
+</script>
+
+</body>
+</html>
