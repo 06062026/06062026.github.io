@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<title>Kvíz – Lokální historie</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    scroll-behavior: smooth;
+}
+
+.question {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 60px;
+    border-bottom: 1px solid #eee;
+}
+
+.question p {
+    font-size: 42px;
+    font-weight: bold;
+    margin-bottom: 40px;
+    line-height: 1.3;
+}
+
+label {
+    display: block;
+    font-size: 26px;
+    margin: 15px 0;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 8px;
+}
+
+label:hover {
+    background: #f0f0f0;
+}
+
+input[type="radio"] {
+    margin-right: 15px;
+    transform: scale(1.4);
+}
+
+button {
+    font-size: 32px;
+    padding: 20px;
+    width: 100%;
+}
+
+#result {
+    padding: 60px;
+    font-size: 22px;
+}
+
+.correct { color: green; }
+.wrong { color: red; }
+</style>
+</head>
+
+<body>
+
+<form id="quizForm"></form>
+
+<div class="question" id="submitBlock">
+    <button type="button" onclick="submitQuiz()">Odeslat kvíz</button>
+</div>
+
+<div id="result"></div>
+
+<script>
+const questions = [
+
+{q:"1. Ve kterém městě se nachází zámek s parkem chráněným NATURA 2000?", options:["Vratimov","Paskov","Rychvald","Žádné"], answer:1},
+{q:"2. Které město je spojeno s výrobou celulózy a papíru?", options:["Vratimov","Paskov","Rychvald","Všechna"], answer:0},
+{q:"3. Kdo stál u založení Vratimova ve 13. století?", options:["Jan Barut","Bernard Barský","Marie Fürstenbusch","Jan Lucemburský"], answer:0},
+{q:"4. Ve kterém městě stojí kostel sv. Vavřince z 18. století?", options:["Paskov","Rychvald","Vratimov","Žádné"], answer:0},
+{q:"5. Které město má kostel sv. Anny z roku 1595?", options:["Paskov","Rychvald","Vratimov","Žádné"], answer:1},
+
+{q:"6. Které město bylo historicky sídlem panství Bernarda Barského z Baště?", options:["Rychvald","Paskov","Vratimov","Žádné"], answer:0},
+{q:"7. Kde vznikla papírna v 19. století?", options:["Vratimov","Paskov","Rychvald","Všechna"], answer:0},
+{q:"8. Které město bylo hraniční mezi Moravou a Těšínskem?", options:["Paskov","Rychvald","Vratimov","Žádné"], answer:0},
+{q:"9. Ve kterém městě působil generál Zdeněk Novák?", options:["Paskov","Rychvald","Vratimov","Žádné"], answer:0},
+{q:"10. Kde žil operní pěvec Přemysl Kočí?", options:["Rychvald","Paskov","Vratimov","Žádné"], answer:0},
+
+{q:"11. Které město bylo dějištěm sporů o Těšínsko po roce 1918?", options:["Rychvald","Paskov","Vratimov","Všechna"], answer:0},
+{q:"12. Kde se nachází historická sýpka z 18. století?", options:["Paskov","Rychvald","Vratimov","Žádné"], answer:0},
+{q:"13. Které město má znak se symbolem papíru a ozubeného kola?", options:["Vratimov","Paskov","Rychvald","Žádné"], answer:0},
+{q:"14. Kde byla postavena fara v 18. století?", options:["Paskov","Rychvald","Vratimov","Žádné"], answer:0},
+{q:"15. Které město má historickou kapli sv. Kříže v části Oprechtice?", options:["Paskov","Rychvald","Vratimov","Žádné"], answer:0},
+
+{q:"16. Které město bylo ovlivněno Košicko–bohumínskou dráhou?", options:["Rychvald","Paskov","Vratimov","Všechna"], answer:0},
+{q:"17. Kde byl postaven zámek již v 16. století?", options:["Rychvald","Paskov","Vratimov","Obě"], answer:0},
+{q:"18. Které město má historickou vazbu na šlechtu Fürstenbusch?", options:["Paskov","Rychvald","Vratimov","Žádné"], answer:0},
+{q:"19. Kde byl založen rybník Skučák (přírodní rezervace)?", options:["Rychvald","Paskov","Vratimov","Žádné"], answer:0},
+{q:"20. Které město má nejvýraznější papírenskou historii?", options:["Vratimov","Paskov","Rychvald","Žádné"], answer:0},
+
+{q:"21. Které město bylo povýšeno na město až v roce 2011?", options:["Paskov","Rychvald","Vratimov","Žádné"], answer:0},
+{q:"22. Které město bylo povýšeno na město v roce 1985?", options:["Rychvald","Paskov","Vratimov","Obě"], answer:3},
+{q:"23. Kde se nachází zámecký park s historickými sochami?", options:["Paskov","Rychvald","Vratimov","Žádné"], answer:0},
+{q:"24. Které město má dlouhodobou vazbu na hutní průmysl?", options:["Vratimov","Paskov","Rychvald","Všechna"], answer:0},
+{q:"25. Kde byla silná těžba uhlí?", options:["Rychvald","Paskov","Obě","Vratimov"], answer:2},
+
+{q:"26. Které město má historickou kašnu z 18. století?", options:["Paskov","Rychvald","Vratimov","Žádné"], answer:0},
+{q:"27. Kde působil historik Milan Tichák?", options:["Paskov","Rychvald","Vratimov","Žádné"], answer:0},
+{q:"28. Které město má nejstarší feudální jádro se zámkem?", options:["Rychvald","Paskov","Vratimov","Obě"], answer:0},
+{q:"29. Které město bylo nejvíce ovlivněno změnami po těžbě uhlí?", options:["Rychvald","Paskov","Vratimov","Všechna"], answer:0},
+{q:"30. Kde vznikl znak kombinující zemědělství a průmysl?", options:["Vratimov","Paskov","Rychvald","Žádné"], answer:0},
+
+{q:"31. Které město má historickou vazbu na legionáře Zdeňka Nováka?", options:["Paskov","Rychvald","Vratimov","Žádné"], answer:0},
+{q:"32. Kde byl postaven kostel sv. Vavřince kolem roku 1740?", options:["Paskov","Rychvald","Vratimov","Žádné"], answer:0},
+{q:"33. Které město má historické rybniční soustavy?", options:["Rychvald","Paskov","Vratimov","Žádné"], answer:0},
+{q:"34. Kde byla založena knihovna už v roce 1922?", options:["Rychvald","Paskov","Vratimov","Žádné"], answer:0},
+{q:"35. Které město má významnou kulturní osobnost Bohumíra Dvorského?", options:["Paskov","Rychvald","Vratimov","Žádné"], answer:0},
+
+{q:"36. Které město bylo ovlivněno sporem ČSR–Polsko?", options:["Rychvald","Paskov","Vratimov","Všechna"], answer:0},
+{q:"37. Kde byl zámek centrem panství?", options:["Rychvald","Paskov","Obě","Žádné"], answer:2},
+{q:"38. Které město má historickou dřevěnou sýpku?", options:["Paskov","Rychvald","Vratimov","Žádné"], answer:0},
+{q:"39. Které město je nejvíce spojeno s papírenským průmyslem?", options:["Vratimov","Paskov","Rychvald","Žádné"], answer:0},
+{q:"40. Kde byl významný kostel sv. Anny?", options:["Rychvald","Paskov","Vratimov","Žádné"], answer:0},
+
+{q:"41. Které město má historickou kapli v Oprechticích?", options:["Paskov","Rychvald","Vratimov","Žádné"], answer:0},
+{q:"42. Kde byl významný rozvoj díky uhlí?", options:["Rychvald","Paskov","Obě","Vratimov"], answer:2},
+{q:"43. Které město je více průmyslové než historické?", options:["Vratimov","Paskov","Rychvald","Žádné"], answer:0},
+{q:"44. Kde se nachází zámek jako dominanta města?", options:["Paskov","Rychvald","Obě","Žádné"], answer:2},
+{q:"45. Které město má historické vazby na Těšínské knížectví?", options:["Rychvald","Paskov","Vratimov","Všechna"], answer:0},
+
+{q:"46. Které město má nejsilnější vazbu na papírny?", options:["Vratimov","Paskov","Rychvald","Žádné"], answer:0},
+{q:"47. Kde působil jezuita Petr Kolář?", options:["Paskov","Rychvald","Vratimov","Žádné"], answer:0},
+{q:"48. Které město má nejvíce zachované šlechtické objekty?", options:["Paskov","Rychvald","Vratimov","Obě"], answer:3},
+{q:"49. Kde byla významná železniční trať Ostrava–Valašské Meziříčí?", options:["Paskov","Rychvald","Vratimov","Žádné"], answer:0},
+{q:"50. Které město má kombinaci papíren, hutí a zemědělství v symbolice?", options:["Vratimov","Paskov","Rychvald","Žádné"], answer:0}
+
+];
+
+const form = document.getElementById("quizForm");
+
+questions.forEach((item, index) => {
+    const div = document.createElement("div");
+    div.classList.add("question");
+    div.id = "q" + index;
+
+    let html = `<p>${item.q}</p>`;
+    item.options.forEach((opt, i) => {
+        html += `<label>
+            <input type="radio" name="q${index}" value="${i}" onclick="nextQuestion(${index})">
+            ${opt}
+        </label>`;
+    });
+
+    div.innerHTML = html;
+    form.appendChild(div);
+});
+
+function nextQuestion(index) {
+    const next = document.getElementById("q" + (index + 1));
+    if (next) {
+        next.scrollIntoView({ behavior: "smooth" });
+    } else {
+        document.getElementById("submitBlock").scrollIntoView({ behavior: "smooth" });
+    }
+}
+
+function submitQuiz() {
+    let score = 0;
+    let output = "";
+
+    questions.forEach((item, index) => {
+        const selected = document.querySelector(`input[name="q${index}"]:checked`);
+        if (selected) {
+            if (parseInt(selected.value) === item.answer) {
+                score++;
+                output += `<p class="correct">${item.q} ✔</p>`;
+            } else {
+                output += `<p class="wrong">${item.q} ✘ (správně: ${item.options[item.answer]})</p>`;
+            }
+        } else {
+            output += `<p class="wrong">${item.q} ✘ (nezodpovězeno)</p>`;
+        }
+    });
+
+    document.getElementById("result").innerHTML =
+        `<h2>Výsledek: ${score} / ${questions.length}</h2>` + output;
+
+    document.getElementById("result").scrollIntoView({ behavior: "smooth" });
+}
+</script>
+
+</body>
+</html>
