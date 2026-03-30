@@ -428,6 +428,7 @@
         
         // ---- Add Event Listeners ----
         
+        // Desktop hover
         hotspotDiv.addEventListener('mouseenter', function() {
             popup.classList.add('visible');
         });
@@ -435,6 +436,43 @@
         hotspotDiv.addEventListener('mouseleave', function() {
             popup.classList.remove('visible');
         });
+        
+        // Mobile touch support
+        hotspotDiv.addEventListener('touchstart', function(e) {
+            e.preventDefault(); // Prevent mouse events from firing
+            
+            // Hide all other popups
+            document.querySelectorAll('.schedule-popup').forEach(p => {
+                if (p !== popup) {
+                    p.classList.remove('visible');
+                }
+            });
+            
+            // Toggle this popup
+            popup.classList.toggle('visible');
+        });
+        
+        // Click support (fallback for devices that don't support touch or hover well)
+        hotspotDiv.addEventListener('click', function(e) {
+            // Only handle if not a touch device (to avoid double-triggering)
+            if (!e.touches) {
+                document.querySelectorAll('.schedule-popup').forEach(p => {
+                    if (p !== popup) {
+                        p.classList.remove('visible');
+                    }
+                });
+                popup.classList.toggle('visible');
+            }
+        });
+    });
+    
+    // Close popups when touching outside on mobile
+    document.addEventListener('touchstart', function(e) {
+        if (!e.target.closest('.hotspot') && !e.target.closest('.schedule-popup')) {
+            document.querySelectorAll('.schedule-popup').forEach(p => {
+                p.classList.remove('visible');
+            });
+        }
     });
 </script>
 
