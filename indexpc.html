@@ -25,7 +25,7 @@
             font-family: 'CustomFont', cursive;
         }
 
-        /* Center and maintain the 2:3 aspect ratio of mapka4.png (1024×1536) - portrait */
+        /* Center and maintain the 3:2 aspect ratio of mapka.png (1536×1024) */
         .map-wrapper {
             width: 100vw;
             height: 100vh;
@@ -36,8 +36,8 @@
 
         .map-container {
             position: relative;
-            width: min(100vw, 66.6667vh);
-            height: min(100vh, 150vw);
+            width: min(100vw, 150vh);
+            height: min(100vh, 66.6667vw);
             flex-shrink: 0;
         }
 
@@ -82,35 +82,34 @@
             100% { opacity: 0.7; r: 12; }
         }
 
-        /* Schedule popup panels at the bottom */
+        /* Schedule popup panels in the right half */
         .schedule-popup {
             position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translateX(-50%);
+            left: 65%;
+            top: 39%;
             background: transparent;
             border: none;
             border-radius: 0;
             padding: 1vmin 1.5vmin;
             pointer-events: none;
             opacity: 0;
+            transform: translateY(-50%) translateX(-0.5vmin);
             transition: opacity 0.28s ease, transform 0.28s ease;
             min-width: 15vmin;
-            max-width: 99%;
+            max-width: 35%;
             box-shadow: none;
             z-index: 20;
             font-family: 'CustomFont', cursive;
-            text-align: center;
         }
 
         .schedule-popup.visible {
             opacity: 1;
-            transform: translateX(-50%) translateY(0.5vmin);
+            transform: translateY(-50%) translateX(0);
         }
 
         .schedule-popup h3 {
             color: #4a6020;
-            font-size: 5.3vmin;
+            font-size: 5.0vmin;
             font-weight: 700;
             margin-bottom: 1vmin;
             padding-bottom: 0.5vmin;
@@ -120,7 +119,7 @@
 
         .schedule-popup p {
             color: #3a4a18;
-            font-size: 4.6vmin;
+            font-size: 4.4vmin;
             line-height: 1.6;
             letter-spacing: 0.01em;
             margin-bottom: 0.5vmin;
@@ -129,45 +128,6 @@
         /* SVG visual elements */
         .svg-dot {
             opacity: 1;
-            transition: fill 0.3s ease, stroke 0.3s ease;
-        }
-
-        .svg-dot.active {
-            fill: #708238;
-            stroke: #5a6b2d;
-            stroke-width: 3;
-            animation: dotPulse 1.5s ease-in-out infinite;
-        }
-
-        @keyframes dotPulse {
-            0%, 100% {
-                r: 12;
-                opacity: 1;
-            }
-            50% {
-                r: 18;
-                opacity: 0.8;
-            }
-        }
-
-        .svg-pulse {
-            transition: stroke 0.3s ease;
-        }
-
-        .svg-pulse.active {
-            stroke: rgba(112, 130, 56, 0.8) !important;
-            animation: activePulse 1.5s ease-in-out infinite;
-        }
-
-        @keyframes activePulse {
-            0%, 100% {
-                r: 16;
-                opacity: 0.7;
-            }
-            50% {
-                r: 24;
-                opacity: 0.2;
-            }
         }
 
         .svg-line {
@@ -207,24 +167,23 @@
 </head>
 <body>
 
-<!-- Switch to landscape version -->
-<a href="indexpc.html" class="switch-icon" title="Přepnout na PC verzi">
+<!-- Switch to mobile version -->
+<a href="index.html" class="switch-icon" title="Přepnout na mobilní verzi">
     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <rect x="2" y="5" width="20" height="14" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
-        <line x1="2" y1="17" x2="22" y2="17" stroke="currentColor" stroke-width="2"/>
-        <path d="M 9 21 L 15 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <rect x="7" y="2" width="10" height="20" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
+        <line x1="10" y1="19" x2="14" y2="19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
     </svg>
 </a>
 
 <div class="map-wrapper">
     <div class="map-container" id="mapContainer">
 
-        <!-- The map image - portrait version -->
-        <img src="mapka4.png" class="map-bg" alt="Mapa areálu" draggable="false">
+        <!-- The map image -->
+        <img src="mapka3.png" class="map-bg" alt="Mapa areálu" draggable="false">
 
         <!-- SVG overlay – dynamically populated by JavaScript -->
         <svg class="svg-overlay"
-             viewBox="0 0 1024 1536"
+             viewBox="0 0 1536 1024"
              preserveAspectRatio="none"
              id="svgOverlay"
              aria-hidden="true">
@@ -239,13 +198,13 @@
     // ============================================================================
     // CONFIGURATION - Define all hotspots in one place
     // ============================================================================
-    const IMAGE_WIDTH = 1024;
-    const IMAGE_HEIGHT = 1536;
-    const LINE_END_Y = 1100;  // Bottom anchor for lines
+    const IMAGE_WIDTH = 1536;
+    const IMAGE_HEIGHT = 1024;
+    const LINE_END_X = 798;  // Right-half anchor for lines
 
     const HOTSPOTS = [
         {
-            bbox: { xMin: 530, xMax: 580, yMin: 180, yMax: 260 },
+            bbox: { xMin: 530, xMax: 580, yMin: 200, yMax: 280 },
             title: 'Parkovací louka',
             schedule: [
                 '12:00 Parkování',
@@ -257,7 +216,7 @@
             ]
         },
         {
-            bbox: { xMin: 530, xMax: 580, yMin: 520, yMax: 560 },
+            bbox: { xMin: 530, xMax: 580, yMin: 540, yMax: 580 },
             title: 'Uvítací louka',
             schedule: [
                 '13:00 Výdej myrty',
@@ -270,7 +229,8 @@
             ]
         },
         {
-            bbox: { xMin: 570, xMax: 670, yMin: 550, yMax: 650 },
+            // Bounding box in native image coordinates
+            bbox: { xMin: 570, xMax: 670, yMin: 600, yMax: 700 },
             title: 'Obřadní louka',
             schedule: [
                 '13:30 Předobřadní napětí',
@@ -282,7 +242,7 @@
             ]
         },
         {
-            bbox: { xMin: 550, xMax: 580, yMin:460, yMax: 480 },
+            bbox: { xMin: 550, xMax: 580, yMin:480, yMax: 500 },
             title: 'Bar',
             schedule: [
                 '13:00 Prosecco',
@@ -294,7 +254,7 @@
             ]
         },
         {
-            bbox: { xMin: 600, xMax: 640, yMin: 410, yMax: 440 },
+            bbox: { xMin: 600, xMax: 640, yMin: 430, yMax: 460 },
             title: 'Kantýna',
             schedule: [
                 '13:00 Kanapky',
@@ -306,7 +266,7 @@
             ]
         },
         {
-            bbox: { xMin: 600, xMax: 640, yMin: 250, yMax: 330 },
+            bbox: { xMin: 600, xMax: 640, yMin: 270, yMax: 350 },
             title: 'Odpočinková louka',
             schedule: [
                 '15:00 Lenošení',
@@ -318,7 +278,7 @@
             ]
         },
         {
-            bbox: { xMin: 650, xMax: 700, yMin: 360, yMax: 400 },
+            bbox: { xMin: 650, xMax: 700, yMin: 380, yMax: 420 },
             title: 'Společná louka',
             schedule: [
                 '13:00 Kávička',
@@ -329,20 +289,20 @@
                 '21:00 Drink'
             ]
         },
-        {
-            bbox: { xMin: 460, xMax: 490, yMin: 350, yMax: 390 },
+                {
+            bbox: { xMin: 460, xMax: 490, yMin: 370, yMax: 410 },
             title: 'Sportovní louka',
             schedule: [
                 '15:00 Turnaj v beach volejbalu',
                 '16:00 Turnaj ve fotbale',
                 '17:00 Turnaj v badmintonu',
                 '18:00 Turnaj v pétanque',
-                '19:00 Turnaj v vybíjené',
+                '19:00 Turnaj ve vybíjené',
                 '20:00 Turnaj v pingpongu'
             ]
         },
         {
-            bbox: { xMin: 320, xMax: 510, yMin: 650, yMax: 720 },
+            bbox: { xMin: 320, xMax: 510, yMin: 720, yMax: 800 },
             title: 'Dětská louka',
             schedule: [
                 '13:00 Házení',
@@ -354,7 +314,7 @@
             ]
         },
         {
-            bbox: { xMin: 540, xMax: 580, yMin: 380, yMax: 420 },
+            bbox: { xMin: 540, xMax: 580, yMin: 400, yMax: 440 },
             title: 'Hudba',
             schedule: [
                 '17:30 Nevěstina kapela',
@@ -367,7 +327,7 @@
             ]
         },
         {
-            bbox: { xMin: 600, xMax: 660, yMin:470, yMax: 500 },
+            bbox: { xMin: 600, xMax: 660, yMin:490, yMax: 520 },
             title: 'Ohňová louka',
             schedule: [
                 '13:00 Vyprávění',
@@ -379,7 +339,7 @@
             ]
         },
         {
-            bbox: { xMin: 740, xMax: 770, yMin: 420, yMax: 460 },
+            bbox: { xMin: 740, xMax: 770, yMin: 440, yMax: 480 },
             title: 'Stanová louka',
             schedule: [
                 '12:00 Stavění stanů',
@@ -393,7 +353,7 @@
 
 
         {
-            bbox: { xMin: 200, xMax: 310, yMin: 100, yMax: 300 },
+            bbox: { xMin: 200, xMax: 310, yMin: 120, yMax: 320 },
             title: 'Les',
             schedule: [
                 '12:00 Rozjímání',
@@ -406,7 +366,7 @@
         },
 
         {
-            bbox: { xMin: 100, xMax: 210, yMin: 320, yMax: 400 },
+            bbox: { xMin: 100, xMax: 210, yMin: 340, yMax: 420 },
             title: 'Rybník',
             schedule: [
                 '15:00 Koupání',
@@ -425,34 +385,6 @@
     const svgOverlay = document.getElementById('svgOverlay');
     const mapContainer = document.getElementById('mapContainer');
     const SVG_NS = 'http://www.w3.org/2000/svg';
-    
-    // Store references to dots and pulses for highlighting
-    const dotElements = [];
-    const pulseElements = [];
-    const popupElements = [];
-
-    // Function to highlight a specific hotspot
-    function highlightHotspot(index) {
-        // Remove active class from all dots and pulses
-        dotElements.forEach((dot, i) => {
-            if (i === index) {
-                dot.classList.add('active');
-                pulseElements[i].classList.add('active');
-            } else {
-                dot.classList.remove('active');
-                pulseElements[i].classList.remove('active');
-            }
-        });
-        
-        // Hide all popups and show the selected one
-        popupElements.forEach((popup, i) => {
-            if (i === index) {
-                popup.classList.add('visible');
-            } else {
-                popup.classList.remove('visible');
-            }
-        });
-    }
 
     HOTSPOTS.forEach((hotspot, index) => {
         const id = index + 1;
@@ -480,16 +412,15 @@
         pulse.setAttribute('stroke', 'rgba(112, 130, 56, 0.6)');
         pulse.setAttribute('stroke-width', '2');
         svgOverlay.appendChild(pulse);
-        pulseElements.push(pulse);
         
-        // Line (hidden by CSS) - now vertical to bottom
+        // Line (hidden by CSS)
         const line = document.createElementNS(SVG_NS, 'line');
         line.setAttribute('id', 'line' + id);
         line.setAttribute('class', 'svg-line');
         line.setAttribute('x1', cx);
         line.setAttribute('y1', cy);
-        line.setAttribute('x2', cx);
-        line.setAttribute('y2', LINE_END_Y);
+        line.setAttribute('x2', LINE_END_X);
+        line.setAttribute('y2', cy);
         line.setAttribute('stroke', '#708238');
         line.setAttribute('stroke-width', '2.5');
         line.setAttribute('stroke-dasharray', '10,5');
@@ -506,7 +437,6 @@
         dot.setAttribute('stroke', '#fffff0');
         dot.setAttribute('stroke-width', '2.5');
         svgOverlay.appendChild(dot);
-        dotElements.push(dot);
         
         // ---- Create Hotspot Div ----
         
@@ -536,40 +466,45 @@
         });
         
         mapContainer.appendChild(popup);
-        popupElements.push(popup);
         
         // ---- Add Event Listeners ----
         
         // Desktop hover
         hotspotDiv.addEventListener('mouseenter', function() {
-            highlightHotspot(index);
+            popup.classList.add('visible');
         });
         
         hotspotDiv.addEventListener('mouseleave', function() {
-            // Remove highlight and hide popup
-            dotElements.forEach(dot => dot.classList.remove('active'));
-            pulseElements.forEach(pulse => pulse.classList.remove('active'));
             popup.classList.remove('visible');
         });
         
         // Mobile touch support
         hotspotDiv.addEventListener('touchstart', function(e) {
             e.preventDefault(); // Prevent mouse events from firing
-            highlightHotspot(index);
+            
+            // Hide all other popups
+            document.querySelectorAll('.schedule-popup').forEach(p => {
+                if (p !== popup) {
+                    p.classList.remove('visible');
+                }
+            });
+            
+            // Show this popup (no toggle, always show)
+            popup.classList.add('visible');
         });
         
         // Click support (fallback for devices that don't support touch or hover well)
         hotspotDiv.addEventListener('click', function(e) {
             // Only handle if not a touch device (to avoid double-triggering)
             if (!e.touches) {
-                highlightHotspot(index);
+                document.querySelectorAll('.schedule-popup').forEach(p => {
+                    if (p !== popup) {
+                        p.classList.remove('visible');
+                    }
+                });
+                popup.classList.add('visible');
             }
         });
-    });
-    
-    // Show "Obřadní louka" (index 2) by default on page load
-    window.addEventListener('load', function() {
-        highlightHotspot(2); // Obřadní louka is at index 2
     });
 </script>
 
