@@ -29,18 +29,15 @@
         .map-wrapper {
             width: 100vw;
             height: 100vh;
-            height: 100dvh; /* Use dynamic viewport height on mobile */
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #1a1a10;
         }
 
         .map-container {
             position: relative;
-            width: 100vw;
-            height: 100vh;
-            height: 100dvh; /* Use dynamic viewport height on mobile */
+            width: min(100vw, 66.6667vh);
+            height: min(100vh, 150vw);
             flex-shrink: 0;
         }
 
@@ -51,8 +48,6 @@
             user-select: none;
             -webkit-user-drag: none;
             pointer-events: none;
-            object-fit: cover;
-            object-position: center;
         }
 
         /* SVG overlay for dots and lines */
